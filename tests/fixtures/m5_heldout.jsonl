@@ -1,0 +1,8 @@
+{"text": "remind me tomorrow morning at 8", "expected_intent": "create_reminder", "slots": {"time": "08:00", "date": "2026-09-19"}, "missing": [], "ambiguous": []}
+{"text": "parso 10 am ko call karna", "expected_intent": "create_reminder", "slots": {"time": "10:00", "date": "2026-09-20"}, "missing": [], "ambiguous": []}
+{"text": "aaj raat 11 baje note banao", "expected_intent": "create_reminder", "slots": {"time": "23:00", "date": "2026-09-18"}, "missing": [], "ambiguous": []}
+{"text": "remind me at 1 pm", "expected_intent": "create_reminder", "slots": {"time": "13:00", "date": "2026-09-18"}, "missing": [], "ambiguous": ["past_time"]}
+{"text": "set alarm for 6", "expected_intent": "create_reminder", "slots": {"time": "06:00", "date": "2026-09-18"}, "missing": [], "ambiguous": ["am_pm"]}
+{"text": "nahi kal", "expected_intent": "correction", "slots": {"time": null, "date": "2026-09-19"}, "missing": ["time"], "ambiguous": []}
+{"text": "nahi radd karo", "expected_intent": "cancel", "slots": {"time": null, "date": null}, "missing": [], "ambiguous": []}
+{"text": "hello how are you", "expected_intent": "unknown", "slots": {"time": null, "date": null}, "missing": [], "ambiguous": []}

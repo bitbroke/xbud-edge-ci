@@ -1,0 +1,8 @@
+pytest
+numpy
+soundfile
+cryptography
+jsonschema
+psutil
+jiwer
+tzdata

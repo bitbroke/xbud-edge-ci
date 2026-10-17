@@ -1,0 +1,8 @@
+{"text": "remind me at midnight", "expected_intent": "create_reminder", "slots": {"time": "00:00", "date": "2026-09-19"}, "missing": [], "ambiguous": []}
+{"text": "remind me at 12 am", "expected_intent": "create_reminder", "slots": {"time": "00:00", "date": "2026-09-19"}, "missing": [], "ambiguous": []}
+{"text": "remind me today at 5 pm", "expected_intent": "create_reminder", "slots": {"time": "17:00", "date": "2026-09-18"}, "missing": [], "ambiguous": []}
+{"text": "kal nau baje yaad dilaana", "expected_intent": "create_reminder", "slots": {"time": "09:00", "date": "2026-09-19"}, "missing": [], "ambiguous": ["am_pm"]}
+{"text": "no make it 7 pm", "expected_intent": "correction", "slots": {"time": "19:00", "date": "2026-09-18"}, "missing": [], "ambiguous": []}
+{"text": "haan thik hai", "expected_intent": "confirm", "slots": {"time": null, "date": null}, "missing": [], "ambiguous": []}
+{"text": "cancel it", "expected_intent": "cancel", "slots": {"time": null, "date": null}, "missing": [], "ambiguous": []}
+{"text": "what is the weather", "expected_intent": "unknown", "slots": {"time": null, "date": null}, "missing": [], "ambiguous": []}
