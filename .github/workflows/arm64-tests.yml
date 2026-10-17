@@ -37,15 +37,12 @@ jobs:
 
       - name: Run safe ARM64 tests
         run: |
-          pytest tests -q \
-            --ignore=tests/test_real_audio_hardware.py \
-            --ignore=tests/test_real_model_downloads.py
+          mkdir -p reports test-results
+          pytest tests -q --ignore=tests/test_real_audio_hardware.py --ignore=tests/test_real_model_downloads.py --junitxml=test-results/junit.xml | tee reports/pytest_output.txt
 
       - name: Verify manifests and hashes
         run: |
-          python benchmarks/run_m8.py \
-            --dataset datasets/test_fixture \
-            --verify-only
+          python benchmarks/run_m8.py --dataset datasets/test_fixture --verify-only | tee reports/benchmark_verify.txt
 
       - name: Upload test evidence
         uses: actions/upload-artifact@v4
