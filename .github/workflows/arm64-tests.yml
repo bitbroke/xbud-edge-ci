@@ -21,7 +21,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg alsa-utils
+          sudo apt-get install -y ffmpeg alsa-utils wget tar bzip2
 
       - name: Install Python dependencies
         run: |
@@ -43,6 +43,17 @@ jobs:
       - name: Verify manifests and hashes
         run: |
           python benchmarks/run_m8.py --dataset datasets/test_fixture --verify-only | tee reports/benchmark_verify.txt
+
+      - name: Download real Zipformer English model
+        run: |
+          mkdir -p models
+          wget -q https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-zipformer-en-2023-06-26.tar.bz2
+          tar xf sherpa-onnx-zipformer-en-2023-06-26.tar.bz2 -C models/
+          rm -f sherpa-onnx-zipformer-en-2023-06-26.tar.bz2
+
+      - name: Run real English ASR ARM64 smoke test
+        run: |
+          python scripts/smoke_test_real_asr.py --model-dir models/sherpa-onnx-zipformer-en-2023-06-26 --speech-wav tests/fixtures/speech_test.wav --silence-wav tests/fixtures/silence_test.wav --output-dir reports | tee reports/smoke_test_output.txt
 
       - name: Upload test evidence
         uses: actions/upload-artifact@v4

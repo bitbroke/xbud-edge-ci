@@ -20,15 +20,21 @@ def settings(config):
     """Resolve paths before switching to the writable runtime directory."""
     base = Path(config.config_path).resolve().parent
     def path(value):
+        if not value:
+            return None
         candidate = Path(value)
         return str(candidate if candidate.is_absolute() else (base/candidate).resolve())
-    return {'asr_bin': path(config.get('asr_bin', 'bin/whisper-cli')),
-            'model_path': path(config.get('model_path', 'models/ggml-base-latest.bin')),
-            'storage_dir': path(config.get('storage_dir', 'data')),
-            'language': config.get('language', 'en'),
-            'tts_bin': shutil.which(config.get('tts_bin', 'espeak-ng')),
-            'input_device': config.get('audio_input_device'),
-            'output_device': config.get('audio_output_device')}
+    return {
+        'asr_engine': config.get('asr_engine', 'sherpa'),
+        'asr_model_dir': path(config.get('asr_model_dir', 'models/sherpa-onnx-zipformer-en-2023-06-26')),
+        'asr_bin': path(config.get('asr_bin', 'bin/whisper-cli')),
+        'model_path': path(config.get('model_path', 'models/ggml-base-latest.bin')),
+        'storage_dir': path(config.get('storage_dir', 'data')),
+        'language': config.get('language', 'en'),
+        'tts_bin': shutil.which(config.get('tts_bin', 'espeak-ng')),
+        'input_device': config.get('audio_input_device'),
+        'output_device': config.get('audio_output_device')
+    }
 
 
 def main():
@@ -41,11 +47,18 @@ def main():
         parser.error(f'Configuration file does not exist: {args.config}')
     config = AppConfig(args.config)
     cfg = settings(config)
-    for name in ('asr_bin', 'model_path', 'tts_bin'):
-        if not cfg[name] or not Path(cfg[name]).is_file():
-            raise RuntimeError(f'Missing required {name}: {cfg[name]}')
-    if not os.access(cfg['asr_bin'], os.X_OK):
-        raise RuntimeError('ASR executable is not executable')
+    if cfg['asr_engine'] == 'sherpa':
+        if not cfg['asr_model_dir'] or not Path(cfg['asr_model_dir']).is_dir():
+            raise RuntimeError(f"Missing required asr_model_dir: {cfg['asr_model_dir']}")
+    else:
+        for name in ('asr_bin', 'model_path'):
+            if not cfg[name] or not Path(cfg[name]).is_file():
+                raise RuntimeError(f'Missing required {name}: {cfg[name]}')
+        if not os.access(cfg['asr_bin'], os.X_OK):
+            raise RuntimeError('ASR executable is not executable')
+
+    if not cfg['tts_bin'] or not Path(cfg['tts_bin']).is_file():
+        raise RuntimeError(f"Missing required tts_bin: {cfg['tts_bin']}")
     for name in ('arecord', 'aplay'):
         if not shutil.which(name):
             raise RuntimeError(f'Missing required ALSA executable: {name}')
@@ -67,7 +80,10 @@ def main():
     db_path = str(runtime/'reminders.db')
     db = StorageManager(db_path)
     scheduler = ReminderScheduler(db_path, poll_interval=0.5)
-    asr = ASRWorker(cli_path=cfg['asr_bin'], model_path=cfg['model_path'], language=cfg['language'], strict_real=True)
+    if cfg['asr_engine'] == 'sherpa':
+        asr = ASRWorker(engine='sherpa', model_dir=cfg['asr_model_dir'], language=cfg['language'], strict_real=True)
+    else:
+        asr = ASRWorker(engine='whisper', cli_path=cfg['asr_bin'], model_path=cfg['model_path'], language=cfg['language'], strict_real=True)
     tts = TTSWorker(engine='espeak', exec_path=cfg['tts_bin'], voice=config.get('tts_voice', cfg['language']), strict_real=True)
     playback = LinuxALSAPlayback(device=cfg['output_device'], timeout=config.get('playback_timeout_s', 30))
     convo = ConversationManager(db, scheduler, asr, tts, playback=playback)

@@ -6,3 +6,4 @@ jsonschema
 psutil
 jiwer
 tzdata
+sherpa-onnx
