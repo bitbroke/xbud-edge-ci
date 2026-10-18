@@ -29,7 +29,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg alsa-utils libportaudio2 libsndfile1 wget tar bzip2
+          sudo apt-get install -y ffmpeg alsa-utils libportaudio2 libsndfile1 wget tar bzip2 cmake g++
 
       - name: Install Python dependencies
         id: deps
@@ -89,6 +89,37 @@ jobs:
         if: ${{ !cancelled() && steps.model.outcome == 'success' }}
         run: |
           python -u scripts/stress_sherpa_restart.py --model-dir models/sherpa-onnx-zipformer-en-2023-06-26 --output reports/restart_int8 --cycles 30 --precision int8 | tee reports/restart_stress_output.txt
+
+      - name: Prepare pinned Whisper and neural VAD comparison
+        id: comparison_models
+        if: ${{ !cancelled() && steps.model.outcome == 'success' }}
+        run: |
+          git clone https://github.com/ggml-org/whisper.cpp.git /tmp/xbud-whisper
+          git -C /tmp/xbud-whisper checkout 6a94163b913d8e974e60d9ac56c8930d19f45773
+          cmake -S /tmp/xbud-whisper -B /tmp/xbud-whisper/build -DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=OFF -DGGML_BLAS=OFF -DWHISPER_BUILD_TESTS=OFF
+          cmake --build /tmp/xbud-whisper/build --config Release -j 4
+          { git -C /tmp/xbud-whisper rev-parse HEAD; c++ --version; cat /tmp/xbud-whisper/build/CMakeCache.txt; } > reports/whisper_build.txt
+          wget -q --timeout=30 --tries=3 -O models/ggml-base-latest.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+          wget -q --timeout=30 --tries=3 -O models/silero_vad.onnx https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx
+          echo '60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe  models/ggml-base-latest.bin' | sha256sum --check
+          echo '9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6  models/silero_vad.onnx' | sha256sum --check
+          find /tmp/xbud-whisper/build/bin -maxdepth 1 -type f -executable -print | tee reports/whisper_executables.txt
+
+      - name: Verify bounded normalization safety
+        id: normalization
+        if: ${{ !cancelled() && steps.comparison_models.outcome == 'success' }}
+        run: |
+          python scripts/check_normalization_safety.py --vad-model models/silero_vad.onnx --output reports/normalization_safety | tee reports/normalization_output.txt
+
+      - name: Compare normalized Sherpa on frozen human clips
+        if: ${{ !cancelled() && steps.normalization.outcome == 'success' }}
+        run: |
+          python -u scripts/compare_human_local.py --project "$PWD" --output reports/paired_sherpa --engines sherpa --safe-normalize-sherpa --repeats 2 | tee reports/paired_sherpa_output.txt
+
+      - name: Compare unchanged Whisper Base on same human clips
+        if: ${{ !cancelled() && steps.comparison_models.outcome == 'success' }}
+        run: |
+          python -u scripts/compare_human_local.py --project "$PWD" --output reports/paired_whisper --engines whisper --whisper-cli /tmp/xbud-whisper/build/bin/main --repeats 2 | tee reports/paired_whisper_output.txt
 
       - name: Upload test evidence
         if: always()
