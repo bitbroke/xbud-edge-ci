@@ -29,7 +29,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg alsa-utils wget tar bzip2
+          sudo apt-get install -y ffmpeg alsa-utils libportaudio2 libsndfile1 wget tar bzip2
 
       - name: Install Python dependencies
         id: deps

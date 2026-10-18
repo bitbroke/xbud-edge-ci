@@ -1,6 +1,8 @@
 pytest
 numpy
 soundfile
+sounddevice
+scipy
 cryptography
 jsonschema
 psutil
