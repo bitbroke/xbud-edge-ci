@@ -315,6 +315,11 @@ class ConversationManager:
             self._speak("Please provide more details.")
 
     def _process_new_intent(self, text: str, trusted_input: bool = True):
+        if not trusted_input:
+            logger.warning("Untrusted input detected for new intent. Discarding without mutating active conversation.")
+            self.state = ConvoState.IDLE
+            return
+
         if not text:
             self._handle_failure("Silence detected. Nothing to do.")
             return
@@ -670,6 +675,8 @@ class ConversationManager:
             self._finalize_intent_for_confirmation()
             
         else:
+            self.state = self.previous_state
+            self._start_ttl()
             self._speak("Please say yes or no.")
 
     def cancel(self):

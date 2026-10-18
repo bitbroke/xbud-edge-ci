@@ -15,6 +15,11 @@ class IntentParser:
         original_text = text
         
         # Whisper and Sherpa commonly emit dotted or spaced meridiems
+        text = re.sub(r"\bma['’]?am\b", "maam", text, flags=re.I)
+        text = re.sub(r"\bi\s*['’]?\s*m\b", "im", text, flags=re.I)
+        text = re.sub(r'\bup\s+date\b', 'update', text, flags=re.I)
+        text = re.sub(r'\bwife\s+i\b', 'wifi', text, flags=re.I)
+        text = re.sub(r'\bpass\s+word\b', 'password', text, flags=re.I)
         text = re.sub(r'\b([ap])\s*\.\s*m\s*\.?', r'\1m', text, flags=re.I)
         text = re.sub(r'\b([ap])\s+m\b', r'\1m', text, flags=re.I)
         text = re.sub(r'\bto\s+morrow\b', 'tomorrow', text, flags=re.I)
@@ -26,6 +31,7 @@ class IntentParser:
         
         # Word to number mapping
         num_map = {
+            "noon": 12, "midday": 12,
             "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
             "ek": 1, "do": 2, "teen": 3, "chaar": 4, "paanch": 5, "chhah": 6, "saat": 7, "aath": 8, "nau": 9, "das": 10, "gyarah": 11, "barah": 12,
             "१": 1, "२": 2, "३": 3, "४": 4, "५": 5, "६": 6, "७": 7, "८": 8, "९": 9, "१०": 10, "११": 11, "१२": 12,
@@ -36,7 +42,7 @@ class IntentParser:
         is_confirmation = any(word in text.split() for word in ["yes", "haan", "ha", "okay", "ok", "thik", "sure", "correct", "right"])
         
         # Time matches
-        time_pattern = r'\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|ek|do|teen|chaar|paanch|chhah|saat|aath|nau|das|gyarah|barah|1[0-2]|[1-9]|१[०-२]|[१-९])\b'
+        time_pattern = r'\b(noon|midday|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|ek|do|teen|chaar|paanch|chhah|saat|aath|nau|das|gyarah|barah|1[0-2]|[1-9]|१[०-२]|[१-९])\b'
         time_matches = list(re.finditer(time_pattern, text))
         
         times = []
@@ -45,10 +51,10 @@ class IntentParser:
         
         global_am_pm = None
         words = text.split()
-        if any(w in words for w in ["am", "a.m", "subah", "morning"]):
-            global_am_pm = "am"
-        elif any(w in words for w in ["pm", "p.m", "shaam", "raat", "evening", "night", "dopahar", "afternoon"]):
+        if any(w in words for w in ["noon", "midday"]) or re.search(r'\b(?:at\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s+pm\b', text) or any(w in words for w in ["pm", "p.m", "shaam", "raat", "evening", "night", "dopahar", "afternoon"]):
             global_am_pm = "pm"
+        elif re.search(r'\b(?:at\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s+am\b', text) or any(w in words for w in ["am", "a.m", "subah", "morning"]):
+            global_am_pm = "am"
 
         for match in time_matches:
             time_val = num_map.get(match.group(1))
@@ -81,50 +87,70 @@ class IntentParser:
         body_slot = None
         
         orig_lower = original_text.lower()
-        if "save a note:" in orig_lower or "save note:" in orig_lower or "create a note:" in orig_lower:
+        note_match = re.search(r'\b(?:save|create|add|take)\s+(?:a\s+)?note(?:\s*:\s*|\s+that\s+|\s+about\s+|\s+to\s+|\s+)(.+)$', original_text, re.I)
+        if not note_match:
+            note_match = re.search(r'\bnote\s+down\s+(.+)$', original_text, re.I)
+
+        if note_match:
             intent = "create_note"
-            parts = original_text.split(":", 1)
-            body_slot = parts[1].strip() if len(parts) > 1 else ""
+            body_slot = note_match.group(1).strip()
             if not body_slot:
                 missing.append("body")
-        elif "find my notes about" in text or "search notes" in text:
+        elif any(phrase in text for phrase in ["find my notes", "search notes", "search note", "find note"]):
             intent = "search_notes"
             if "about" in text:
-                parts = original_text.lower().split("about")
-                query_idx = original_text.lower().find("about") + 5
-                query_slot = original_text[query_idx:].strip()
+                query_idx = text.find("about") + 5
+                query_slot = text[query_idx:].strip()
+            elif "for" in text:
+                query_idx = text.find("for") + 3
+                query_slot = text[query_idx:].strip()
+            else:
+                m_search = re.search(r'\b(?:search|find)\s+(?:my\s+)?notes?\s+(.+)$', text, re.I)
+                query_slot = m_search.group(1).strip() if m_search else ""
+            if query_slot:
+                query_slot = re.sub(r'^(?:a|an|the)\s+', '', query_slot, flags=re.I).strip()
+                query_slot = re.sub(r'\s+(?:say|please)$', '', query_slot, flags=re.I).strip()
             if not query_slot:
                 missing.append("query")
         elif "change that note to say" in text or "update note" in text:
             intent = "update_note"
-            idx = original_text.lower().find("to say")
-            about_idx = original_text.lower().find("about")
-            if about_idx != -1:
-                if idx != -1:
-                    body_slot = original_text[idx + 6:about_idx].strip()
-                query_slot = original_text[about_idx + 5:].strip()
+            m_up = re.search(r'\bupdate\s+note\s+(.+?)\s+to\s+(.+)$', text, re.I)
+            if m_up:
+                query_slot = m_up.group(1).strip()
+                body_slot = m_up.group(2).strip()
             else:
-                if idx != -1:
-                    body_slot = original_text[idx + 6:].strip()
+                idx = original_text.lower().find("to say")
+                if idx == -1: idx = original_text.lower().find("to")
+                about_idx = original_text.lower().find("about")
+                if about_idx != -1:
+                    if idx != -1:
+                        body_slot = original_text[idx + 6:about_idx].strip()
+                    query_slot = original_text[about_idx + 5:].strip()
+                elif idx != -1:
+                    body_slot = original_text[idx + 2:].strip()
+            if query_slot:
+                query_slot = re.sub(r'^(?:a|an|the)\s+', '', query_slot, flags=re.I).strip()
             if not body_slot:
                 missing.append("body")
-        elif "schedule a" in text or "schedule an" in text:
+        elif any(p in text for p in ["schedule a", "schedule an", "schedule event", "add event", "at event", "create event", "new event"]):
             intent = "create_event"
-            start_idx = text.find("schedule a") + 10
-            if "schedule an" in text:
-                start_idx = text.find("schedule an") + 11
-            end_idx = text.find("tomorrow")
-            if end_idx == -1: end_idx = text.find("today")
-            if end_idx == -1: end_idx = text.find("kal")
-            if end_idx == -1: end_idx = text.find("from")
-            if end_idx == -1: end_idx = len(text)
-            query_slot = original_text[start_idx:end_idx].strip()
+            m_ev = re.search(r'\b(?:schedule\s+(?:an?\s+)?|(?:add|at)\s+event\s+|create\s+event\s+|new\s+event\s+)(.+?)(?=\s+(?:tomorrow|today|kal|from|at\s+|on\s+)|$)', original_text, re.I)
+            if m_ev:
+                query_slot = m_ev.group(1).strip()
+            else:
+                start_idx = text.find("schedule a") + 10 if "schedule a" in text else 0
+                end_idx = text.find("tomorrow") if "tomorrow" in text else len(text)
+                query_slot = original_text[start_idx:end_idx].strip()
             if not query_slot: missing.append("title")
             if not time_slot: missing.append("time")
             if not end_time_slot: missing.append("end_time")
-        elif "what is on my calendar" in text or "what's on my calendar" in text:
+        elif any(p in text for p in ["what is on my calendar", "what's on my calendar", "search event", "search events", "check calendar"]):
             intent = "search_events"
-            if not date_slot: missing.append("date")
+            m_sev = re.search(r'\b(?:search\s+events?\s+(?:for\s+)?)(.+)$', original_text, re.I)
+            if m_sev:
+                query_slot = m_sev.group(1).strip()
+            if not date_slot:
+                date_slot = target_date.strftime("%Y-%m-%d")
         elif "move the" in text and "to" in text:
             intent = "update_event"
             start_idx = text.find("move the") + 8
@@ -139,7 +165,7 @@ class IntentParser:
                 query_slot = original_text[start_idx + 10:].strip()
             else:
                 query_slot = original_text[12:].strip()
-        elif is_negation and (time_slot or date_slot):
+        elif (is_negation or any(p in text for p in ["change time", "change to", "make it", "instead", "badal", "nahi"])) and (time_slot or date_slot):
             intent = "correction"
         elif "cancel" in text.split() and not ("note" in text or "event" in text or "demo" in text or "meeting" in text):
             intent = "cancel"
