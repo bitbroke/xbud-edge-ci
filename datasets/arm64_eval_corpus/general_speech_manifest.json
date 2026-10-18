@@ -1,0 +1,200 @@
+[
+  {
+    "id": "gen_01",
+    "file": "audio/gen_01.wav",
+    "audio_sha256": "077c1228d13460c84197da248c7c5bca2fd1b75da3e4c7cd7855be75bb628cc0",
+    "expected_transcript": "The quick brown fox jumps over the lazy dog",
+    "duration_s": 3.373875,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_02",
+    "file": "audio/gen_02.wav",
+    "audio_sha256": "16ac4376621f8a77f29b54609e687854dfce1f262626dc063e8fd4b6fe2043fb",
+    "expected_transcript": "Artificial intelligence is transforming voice interfaces",
+    "duration_s": 4.2185625,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_03",
+    "file": "audio/gen_03.wav",
+    "audio_sha256": "7bfc49ef8f8f0958a258027f53502ff1e83d5689240e20c850229a3c002d2687",
+    "expected_transcript": "Please turn on the desk lamp before leaving the room",
+    "duration_s": 3.50875,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_04",
+    "file": "audio/gen_04.wav",
+    "audio_sha256": "33c3baa8105edf551fc511ec08d56ef129387262b3ab736d90fdd10f0cc9db93",
+    "expected_transcript": "Today's weather forecast predicts heavy rain in the evening",
+    "duration_s": 3.86375,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_05",
+    "file": "audio/gen_05.wav",
+    "audio_sha256": "42710f8c2d0ed85a2e2281cbae9fdc253f245803804295147009c8692d78a50f",
+    "expected_transcript": "The meeting has been rescheduled to Thursday afternoon",
+    "duration_s": 3.62375,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_06",
+    "file": "audio/gen_06.wav",
+    "audio_sha256": "75212cd368e2458ca95bb43cdb7c6713983cf451ed6a3375a381d1353268b8d4",
+    "expected_transcript": "She sells seashells on the seashore",
+    "duration_s": 2.834125,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_07",
+    "file": "audio/gen_07.wav",
+    "audio_sha256": "331ac66e5ed1e15a05e3ddb7ad78972d01b1bdd60bd58cd9d75302a0497af162",
+    "expected_transcript": "He opened the window to let fresh air into the office",
+    "duration_s": 3.6189375,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_08",
+    "file": "audio/gen_08.wav",
+    "audio_sha256": "6e49289e8a4bdb9b9fb0344237f906378cb0c03604927b399e026b4583c40c6f",
+    "expected_transcript": "Could you please speak a little louder and clearer",
+    "duration_s": 3.194,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_09",
+    "file": "audio/gen_09.wav",
+    "audio_sha256": "0bc6fed4219e4136dbde2edd87396f4a2851ce1c0a8a0686d9a772f610db4a94",
+    "expected_transcript": "We are preparing the quarterly financial report for the board",
+    "duration_s": 4.0288125,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_10",
+    "file": "audio/gen_10.wav",
+    "audio_sha256": "f68d69f81734bf4f32a7551c92ddb3998ec8603f6a0d857d398125d49df8c744",
+    "expected_transcript": "The train departs from platform three at ten o'clock",
+    "duration_s": 3.66875,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_11",
+    "file": "audio/gen_11.wav",
+    "audio_sha256": "ba7b8b22fce5b39fb4a5db2b5185ad6c8c65da95e96a8c9352b973663651b462",
+    "expected_transcript": "I enjoy listening to classical music while studying",
+    "duration_s": 3.7588125,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_12",
+    "file": "audio/gen_12.wav",
+    "audio_sha256": "3660e6c249ae19745276cac9601496af11f7a572c6bd712e07c7a93290159e3b",
+    "expected_transcript": "A journey of a thousand miles begins with a single step",
+    "duration_s": 3.9336875,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_13",
+    "file": "audio/gen_13.wav",
+    "audio_sha256": "ee21b4994bd7fe2daf7d77ea59e6f6d05e773f655b1171d35a0c7608a6eca380",
+    "expected_transcript": "The library is closed on Sundays and national holidays",
+    "duration_s": 4.2436875,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_14",
+    "file": "audio/gen_14.wav",
+    "audio_sha256": "f504fbffb80b1abeb308f849eb39935d01c70b0f3375c26a72fa22c97cb08163",
+    "expected_transcript": "He walked across the bridge and turned left at the bookstore",
+    "duration_s": 3.7588125,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_15",
+    "file": "audio/gen_15.wav",
+    "audio_sha256": "42c84bd16f83356ff5544d3a8a017fadecf94310abfe9dfbbb97af6aa5bd0ef8",
+    "expected_transcript": "Please remember to save all your work before closing the application",
+    "duration_s": 4.583625,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_16",
+    "file": "audio/gen_16.wav",
+    "audio_sha256": "77a04a06ce82baa949587c48c7f077e2f1d475b2896356fb0778ca7c3ec99a6d",
+    "expected_transcript": "The scientific experiment yielded unexpected and fascinating results",
+    "duration_s": 4.9234375,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_17",
+    "file": "audio/gen_17.wav",
+    "audio_sha256": "91c906a38c8333f7822d9fa7e397fd917de7480f3fd8e10bbb946ae765eeea64",
+    "expected_transcript": "Pack my box with five dozen liquor jugs",
+    "duration_s": 3.454,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_18",
+    "file": "audio/gen_18.wav",
+    "audio_sha256": "505cc981939450a189d7ca770b1170c92e6b4219324c53ce6e46be08f9161594",
+    "expected_transcript": "She decided to study computer engineering at university",
+    "duration_s": 4.0836875,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_19",
+    "file": "audio/gen_19.wav",
+    "audio_sha256": "eb063733b568606f203adb26ee9936192fa196815d96722f7e3b297cb29bcf32",
+    "expected_transcript": "The sun rises in the east and sets in the west",
+    "duration_s": 3.4089375,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_20",
+    "file": "audio/gen_20.wav",
+    "audio_sha256": "b6aad30c353595e7982cd344b369084805ebfb2b875ab48c2d0d74a696b2afd2",
+    "expected_transcript": "Breakfast is the most important meal of the day",
+    "duration_s": 3.2488125,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_21",
+    "file": "audio/gen_21.wav",
+    "audio_sha256": "2c8179776dd99023775296d7e4c5d59d77f8f372caeed21c7a76ace1da7c7104",
+    "expected_transcript": "The children played in the park until sunset",
+    "duration_s": 3.253875,
+    "sample_rate": 16000,
+    "channels": 1
+  },
+  {
+    "id": "gen_22",
+    "file": "audio/gen_22.wav",
+    "audio_sha256": "42221815e2d7d237c0d588e0ee2ee9ab007cb101171865bc7154322dedf7086a",
+    "expected_transcript": "Water boils at one hundred degrees Celsius under normal pressure",
+    "duration_s": 4.4585625,
+    "sample_rate": 16000,
+    "channels": 1
+  }
+]

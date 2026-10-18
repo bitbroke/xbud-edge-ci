@@ -1,0 +1,532 @@
+[
+  {
+    "session_id": "cmd_sess_01",
+    "name": "reminder_call_john",
+    "turns": [
+      {
+        "audio_id": "cmd_01",
+        "file": "audio/cmd_01.wav",
+        "audio_sha256": "c29de7dd721209cc255781dd5751a0192297e32b2cae3fa585e8a2394becc0b0",
+        "text": "Remind me to call John tomorrow at nine AM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": {
+          "intent": "ADD_REMINDER",
+          "extracted_time": "09:00"
+        },
+        "role": "initial",
+        "duration_s": 3.428875,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_02",
+    "name": "reminder_buy_groceries",
+    "turns": [
+      {
+        "audio_id": "cmd_02",
+        "file": "audio/cmd_02.wav",
+        "audio_sha256": "151db7944b3aa62a81771c2386c962685cf15aa28fb144fbf6256b2ceb7de1d7",
+        "text": "Remind me to buy groceries at five PM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": {
+          "intent": "ADD_REMINDER",
+          "extracted_time": "17:00"
+        },
+        "role": "initial",
+        "duration_s": 3.408875,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_03",
+    "name": "reminder_take_medicine",
+    "turns": [
+      {
+        "audio_id": "cmd_03",
+        "file": "audio/cmd_03.wav",
+        "audio_sha256": "daa2a80d802c79fa41e96d2d1cda857da93ea72bf5f9bdf442f2c3d4a9120a72",
+        "text": "Remind me to take medicine at eight PM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": {
+          "intent": "ADD_REMINDER",
+          "extracted_time": "20:00"
+        },
+        "role": "initial",
+        "duration_s": 3.1489375,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_04",
+    "name": "reminder_water_plants",
+    "turns": [
+      {
+        "audio_id": "cmd_04",
+        "file": "audio/cmd_04.wav",
+        "audio_sha256": "b029746c7c0fab83497f781e0fe6af257b87f6f3ef0af5815b455f29ed3f6ddd",
+        "text": "Remind me to water the plants tomorrow at seven AM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": {
+          "intent": "ADD_REMINDER",
+          "extracted_time": "07:00"
+        },
+        "role": "initial",
+        "duration_s": 3.84875,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_05",
+    "name": "reminder_submit_assignment",
+    "turns": [
+      {
+        "audio_id": "cmd_05",
+        "file": "audio/cmd_05.wav",
+        "audio_sha256": "eb219fd13eebf3104fecc7229ff61c9478f4670f0335ac1a01ad6f0be6f38f61",
+        "text": "Remind me to submit the assignment at eleven PM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": {
+          "intent": "ADD_REMINDER",
+          "extracted_time": "23:00"
+        },
+        "role": "initial",
+        "duration_s": 3.71375,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_06",
+    "name": "reminder_feed_dog",
+    "turns": [
+      {
+        "audio_id": "cmd_06",
+        "file": "audio/cmd_06.wav",
+        "audio_sha256": "28619406d6003d396444c2729325c59216258b23f2c09a0c5038a44c7ab70092",
+        "text": "Remind me to feed the dog at six PM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": {
+          "intent": "ADD_REMINDER",
+          "extracted_time": "18:00"
+        },
+        "role": "initial",
+        "duration_s": 3.1939375,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_07",
+    "name": "clarification_call_mom",
+    "turns": [
+      {
+        "audio_id": "cmd_07_a",
+        "file": "audio/cmd_07_a.wav",
+        "audio_sha256": "e12a49cdad199bc006917862c54d379d1c3a3cbe7c13e0b046da810ae61cf1b4",
+        "text": "Remind me to call Mom",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 2.219125,
+        "needs_clarification": true,
+        "resolved_time": null,
+        "updated_time": null
+      },
+      {
+        "audio_id": "cmd_07_b",
+        "file": "audio/cmd_07_b.wav",
+        "audio_sha256": "45e3cb990384c4cc102213da42f84ef6d923136c5f361b5ba44c26879ceb426a",
+        "text": "At five PM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": null,
+        "role": "clarify",
+        "duration_s": 1.90925,
+        "needs_clarification": false,
+        "resolved_time": "17:00",
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_08",
+    "name": "clarification_check_oven",
+    "turns": [
+      {
+        "audio_id": "cmd_08_a",
+        "file": "audio/cmd_08_a.wav",
+        "audio_sha256": "de35464ab230c30779f1ef950cbae0ecb84270c5a989410d13b55f68a361a6df",
+        "text": "Remind me to check the oven",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 2.299125,
+        "needs_clarification": true,
+        "resolved_time": null,
+        "updated_time": null
+      },
+      {
+        "audio_id": "cmd_08_b",
+        "file": "audio/cmd_08_b.wav",
+        "audio_sha256": "272467e46e96b776ae0a9199c98cbc1b2704c76421caa870dc72a248e0e7aa00",
+        "text": "At three PM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": null,
+        "role": "clarify",
+        "duration_s": 1.8743125,
+        "needs_clarification": false,
+        "resolved_time": "15:00",
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_09",
+    "name": "clarification_doctor_appointment",
+    "turns": [
+      {
+        "audio_id": "cmd_09_a",
+        "file": "audio/cmd_09_a.wav",
+        "audio_sha256": "44ae22d5ac78f539c7afcf805deee5de7c0ae20db7eee4e8193a36719d53cebc",
+        "text": "Remind me about the doctor appointment",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 2.8438125,
+        "needs_clarification": true,
+        "resolved_time": null,
+        "updated_time": null
+      },
+      {
+        "audio_id": "cmd_09_b",
+        "file": "audio/cmd_09_b.wav",
+        "audio_sha256": "0eabb56f0705554acd487bc63c083699f8d2dc1cfa8ffc65250d886f3f0cb8da",
+        "text": "Tomorrow at ten AM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": null,
+        "role": "clarify",
+        "duration_s": 2.1941875,
+        "needs_clarification": false,
+        "resolved_time": "10:00",
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_10",
+    "name": "correction_call_sarah",
+    "turns": [
+      {
+        "audio_id": "cmd_10_a",
+        "file": "audio/cmd_10_a.wav",
+        "audio_sha256": "b5890f5692655339b3d2cd3fba5fed7e33e65d003692003a39c8c13a53a36d2c",
+        "text": "Remind me to call Sarah at nine AM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 3.0939375,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      },
+      {
+        "audio_id": "cmd_10_b",
+        "file": "audio/cmd_10_b.wav",
+        "audio_sha256": "636d7ff96a2d7070f6bb8aad5bc2b4b1b3e00ffccac668b8f4418986d4f3627c",
+        "text": "No, make it ten AM",
+        "expected_intent": "UPDATE_REMINDER",
+        "expected_slots": null,
+        "role": "correct",
+        "duration_s": 2.659125,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": "10:00"
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_11",
+    "name": "correction_grocery_time",
+    "turns": [
+      {
+        "audio_id": "cmd_11_a",
+        "file": "audio/cmd_11_a.wav",
+        "audio_sha256": "93562aa2ca46210c8cab3ff363aaa9c7e4029614463218760677b0983d0e8889",
+        "text": "Remind me to buy groceries tomorrow at two PM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 3.7438125,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      },
+      {
+        "audio_id": "cmd_11_b",
+        "file": "audio/cmd_11_b.wav",
+        "audio_sha256": "2632fd5cd1ce4583a2bd64221e47e5f802b8041246270483f2e818de5689642b",
+        "text": "Change time to four PM",
+        "expected_intent": "UPDATE_REMINDER",
+        "expected_slots": null,
+        "role": "correct",
+        "duration_s": 2.5191875,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": "16:00"
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_12",
+    "name": "add_note_wifi_password",
+    "turns": [
+      {
+        "audio_id": "cmd_12",
+        "file": "audio/cmd_12.wav",
+        "audio_sha256": "f15038ed83e4bbb3c2dfebbc815708633b13df1ff4d1c0af50b935f2561fd65d",
+        "text": "Add a note that the guest wifi password is blue sky",
+        "expected_intent": "ADD_NOTE",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 3.69375,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_13",
+    "name": "add_note_locker_combination",
+    "turns": [
+      {
+        "audio_id": "cmd_13",
+        "file": "audio/cmd_13.wav",
+        "audio_sha256": "ff0303407eb0ea5bfed57901fc39fa6c4251e8134b74bf69cc42913d326f9ac3",
+        "text": "Note down the locker combination is four two zero",
+        "expected_intent": "ADD_NOTE",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 3.6388125,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_14",
+    "name": "search_note_wifi",
+    "turns": [
+      {
+        "audio_id": "cmd_14",
+        "file": "audio/cmd_14.wav",
+        "audio_sha256": "8e766506baf05bebb393fe0a92ecee085618e06473aa8d7a60e5a4a3e5b07a7b",
+        "text": "Search note for wifi password",
+        "expected_intent": "SEARCH_NOTE",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 2.734,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_15",
+    "name": "update_note_wifi",
+    "turns": [
+      {
+        "audio_id": "cmd_15",
+        "file": "audio/cmd_15.wav",
+        "audio_sha256": "f3231e19496c49bc1e1cf5dfe1536f0d2a0584123882a7be9e1c7e0b371f7eec",
+        "text": "Update note wifi password to green meadow",
+        "expected_intent": "UPDATE_NOTE",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 3.3189375,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_16",
+    "name": "add_event_project_review",
+    "turns": [
+      {
+        "audio_id": "cmd_16",
+        "file": "audio/cmd_16.wav",
+        "audio_sha256": "dfb4722f69232bdb8539584f61eba91eea314b4b428f0a761176f05e82561b39",
+        "text": "Add event project review tomorrow from two to three PM",
+        "expected_intent": "ADD_EVENT",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 4.0736875,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_17",
+    "name": "add_event_dentist",
+    "turns": [
+      {
+        "audio_id": "cmd_17",
+        "file": "audio/cmd_17.wav",
+        "audio_sha256": "137460fba8d1fb4a6452bc0cf053d68e827da407deed231692c6faf1186fb2db",
+        "text": "Add event dentist appointment on Friday at eleven AM",
+        "expected_intent": "ADD_EVENT",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 4.0036875,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_18",
+    "name": "cancel_event_dentist",
+    "turns": [
+      {
+        "audio_id": "cmd_18",
+        "file": "audio/cmd_18.wav",
+        "audio_sha256": "b615a26e52ef2f2c44ccaea28384c58a27ca29b513d5c92a70419115b18616cd",
+        "text": "Cancel the dentist appointment event",
+        "expected_intent": "CANCEL_EVENT",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 2.838875,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_19",
+    "name": "search_event_review",
+    "turns": [
+      {
+        "audio_id": "cmd_19",
+        "file": "audio/cmd_19.wav",
+        "audio_sha256": "ccd82d62b2198c79662e4afb12c2adade3410ad4c8ba97f07aa477ec96c8271c",
+        "text": "Search event for project review",
+        "expected_intent": "SEARCH_EVENT",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 2.644,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_20",
+    "name": "confirm_flow",
+    "turns": [
+      {
+        "audio_id": "cmd_20_a",
+        "file": "audio/cmd_20_a.wav",
+        "audio_sha256": "45b7306cd64acf19954aa8bb652a73513c598e1a84f8d81c8d6aee7ff60620ff",
+        "text": "Remind me to pay bills tomorrow at five PM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 3.5439375,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      },
+      {
+        "audio_id": "cmd_20_b",
+        "file": "audio/cmd_20_b.wav",
+        "audio_sha256": "46c25c31d29c14b3cd315dde01da94597c429c4a8e44ffda1afd55a85cd39792",
+        "text": "Yes confirm",
+        "expected_intent": "CONFIRM",
+        "expected_slots": null,
+        "role": "confirm",
+        "duration_s": 1.72925,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_21",
+    "name": "cancel_flow",
+    "turns": [
+      {
+        "audio_id": "cmd_21_a",
+        "file": "audio/cmd_21_a.wav",
+        "audio_sha256": "d26ab89b9d20cf1eb412e57e48798d5fedc592862836a56861a2f4637a57702b",
+        "text": "Remind me to wash the car tomorrow at noon",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": null,
+        "role": "initial",
+        "duration_s": 3.214,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      },
+      {
+        "audio_id": "cmd_21_b",
+        "file": "audio/cmd_21_b.wav",
+        "audio_sha256": "c675539fe3a596b28e2b6efd10166778e23e4d5fd6be64002e5f8e8eefd85011",
+        "text": "Cancel that",
+        "expected_intent": "CANCEL",
+        "expected_slots": null,
+        "role": "cancel",
+        "duration_s": 1.62925,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  },
+  {
+    "session_id": "cmd_sess_22",
+    "name": "simple_reminder_lock_door",
+    "turns": [
+      {
+        "audio_id": "cmd_22",
+        "file": "audio/cmd_22.wav",
+        "audio_sha256": "828dcc23dad4bbcfad165557b46f4ad4098e6726952ec8e77b9f948e54a42728",
+        "text": "Remind me to lock the back door at ten PM",
+        "expected_intent": "ADD_REMINDER",
+        "expected_slots": {
+          "intent": "ADD_REMINDER",
+          "extracted_time": "22:00"
+        },
+        "role": "initial",
+        "duration_s": 3.4188125,
+        "needs_clarification": false,
+        "resolved_time": null,
+        "updated_time": null
+      }
+    ]
+  }
+]

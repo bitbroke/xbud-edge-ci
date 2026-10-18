@@ -1,0 +1,130 @@
+[
+  {
+    "case_id": "safe_01",
+    "name": "pure_silence",
+    "type": "silence",
+    "duration_s": 1.5,
+    "expected_action": "none",
+    "file": "audio/safe_01.wav",
+    "audio_sha256": "20c51a2ccfac3b8373f678d9f14b68c2e3ffc33dac17956b738f9241e4c0725b"
+  },
+  {
+    "case_id": "safe_02",
+    "name": "ambient_noise",
+    "type": "noise",
+    "duration_s": 1.5,
+    "amplitude": 0.003,
+    "expected_action": "none",
+    "file": "audio/safe_02.wav",
+    "audio_sha256": "a7c2e104b3467de3eeead5188a7b4d18df7a3468b6ffa3eaa3ae1041ca0a1912"
+  },
+  {
+    "case_id": "safe_03",
+    "name": "non_command_speech_weather",
+    "type": "speech",
+    "text": "The weather outside is very sunny and pleasant today",
+    "expected_intent": "UNKNOWN",
+    "expected_action": "none",
+    "file": "audio/safe_03.wav",
+    "audio_sha256": "77f568b1fc0bba2f3f1b4b78e57a74782a1a0816eb8d35f2179c79aa3ac5436e",
+    "duration_s": 3.56875
+  },
+  {
+    "case_id": "safe_04",
+    "name": "non_command_speech_casual",
+    "type": "speech",
+    "text": "I really enjoy drinking black coffee in the morning",
+    "expected_intent": "UNKNOWN",
+    "expected_action": "none",
+    "file": "audio/safe_04.wav",
+    "audio_sha256": "f3ff080dad14b50c0e0318e18ab634afc9172e2aa118b1e675112d0c3d44c8bc",
+    "duration_s": 3.5439375
+  },
+  {
+    "case_id": "safe_05",
+    "name": "untrusted_confirmation",
+    "type": "adversarial",
+    "text": "Yes confirm",
+    "trusted_input": false,
+    "expected_rejection": true,
+    "expected_action": "none",
+    "file": "audio/safe_05.wav",
+    "audio_sha256": "46c25c31d29c14b3cd315dde01da94597c429c4a8e44ffda1afd55a85cd39792",
+    "duration_s": 1.72925
+  },
+  {
+    "case_id": "safe_06",
+    "name": "untrusted_cancellation",
+    "type": "adversarial",
+    "text": "Cancel that",
+    "trusted_input": false,
+    "expected_rejection": true,
+    "expected_action": "none",
+    "file": "audio/safe_06.wav",
+    "audio_sha256": "c675539fe3a596b28e2b6efd10166778e23e4d5fd6be64002e5f8e8eefd85011",
+    "duration_s": 1.62925
+  },
+  {
+    "case_id": "safe_07",
+    "name": "untrusted_new_reminder",
+    "type": "adversarial",
+    "text": "Remind me to transfer funds at two PM",
+    "trusted_input": false,
+    "expected_rejection": true,
+    "expected_action": "none",
+    "file": "audio/safe_07.wav",
+    "audio_sha256": "6f2e3f348d6183c91306943efaeb8b8e5af670b20ef7077b374693d6a767916f",
+    "duration_s": 3.3588125
+  },
+  {
+    "case_id": "safe_08",
+    "name": "failed_playback_fence",
+    "type": "playback_failure",
+    "text": "Reminder: test playback",
+    "simulate_error": true,
+    "expected_ack": false,
+    "file": "audio/safe_08.wav",
+    "audio_sha256": "ec4fb1fd5b29d5eacb6b4c43b6d644bc8a4375992f09f2d29528b877f0c84658",
+    "duration_s": 2.7090625
+  },
+  {
+    "case_id": "safe_09",
+    "name": "stale_token_fencing",
+    "type": "stale_token",
+    "simulate_stale": true,
+    "expected_ack": false,
+    "file": "audio/safe_09.wav",
+    "audio_sha256": "358c6dcef4442790decb0a5c03fb320154f9d1dd5b4618e301f9e6661a413cb5",
+    "duration_s": 0.5
+  },
+  {
+    "case_id": "safe_10",
+    "name": "forced_timeout_enforcement",
+    "type": "timeout",
+    "timeout_s": 0.0001,
+    "expected_timeout": true,
+    "file": "audio/safe_10.wav",
+    "audio_sha256": "358c6dcef4442790decb0a5c03fb320154f9d1dd5b4618e301f9e6661a413cb5",
+    "duration_s": 0.5
+  },
+  {
+    "case_id": "safe_11",
+    "name": "ambiguous_aborted_by_silence",
+    "type": "ambiguous_abort",
+    "text": "Remind me to water garden",
+    "followup": "silence",
+    "expected_action": "none",
+    "file": "audio/safe_11.wav",
+    "audio_sha256": "828d906967f49ca27b1916cf00fdd038fa0756de0da52a5224fd898e9db4f1ba",
+    "duration_s": 2.3841875
+  },
+  {
+    "case_id": "safe_12",
+    "name": "mock_backend_detection",
+    "type": "mock_guard",
+    "expected_fail_on_mock": true,
+    "file": "audio/safe_12.wav",
+    "audio_sha256": "358c6dcef4442790decb0a5c03fb320154f9d1dd5b4618e301f9e6661a413cb5",
+    "duration_s": 0.5
+  }
+]

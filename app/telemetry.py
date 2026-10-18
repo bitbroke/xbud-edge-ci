@@ -26,7 +26,8 @@ class TelemetryManager:
         self.lock = threading.Lock()
         
         self.logger = logging.getLogger("xbud.telemetry")
-        self.logger.setLevel(logging.INFO)
+        import os
+        os.makedirs("data", exist_ok=True)
         fh = logging.FileHandler("data/xbud_telemetry.log")
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         fh.setFormatter(formatter)
