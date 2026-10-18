@@ -96,7 +96,9 @@ jobs:
         run: |
           git clone https://github.com/ggml-org/whisper.cpp.git /tmp/xbud-whisper
           git -C /tmp/xbud-whisper checkout 6a94163b913d8e974e60d9ac56c8930d19f45773
-          cmake -S /tmp/xbud-whisper -B /tmp/xbud-whisper/build -DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=OFF -DGGML_BLAS=OFF -DWHISPER_BUILD_TESTS=OFF
+          # Cortex-A76 (Pi 5 / RK3588S) and this N2 runner support ARMv8.2 FP16.
+          # Do not deploy this binary to older ARM CPUs without FP16 support.
+          cmake -S /tmp/xbud-whisper -B /tmp/xbud-whisper/build -DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=OFF -DGGML_BLAS=OFF -DWHISPER_BUILD_TESTS=OFF -DCMAKE_C_FLAGS=-march=armv8.2-a+fp16 -DCMAKE_CXX_FLAGS=-march=armv8.2-a+fp16
           cmake --build /tmp/xbud-whisper/build --config Release -j 4
           { git -C /tmp/xbud-whisper rev-parse HEAD; c++ --version; cat /tmp/xbud-whisper/build/CMakeCache.txt; } > reports/whisper_build.txt
           wget -q --timeout=30 --tries=3 -O models/ggml-base-latest.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
