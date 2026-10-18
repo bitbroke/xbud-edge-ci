@@ -395,6 +395,26 @@ class ConversationManager:
 
         old_missing = self.pending_intent_data.get("_last_missing", [])
         old_slots = self.pending_intent_data["slots"]
+
+        if self.pending_intent_data.get("_correction_pending"):
+            # Resolve against already-corrected slots, never by reparsing the
+            # original request (which could silently resurrect its old time).
+            compact = "".join(text.lower().replace(".", "").split())
+            reply = text
+            if compact in ("am", "pm") and old_slots.get("time"):
+                hour = int(old_slots["time"].split(":")[0]) % 12 or 12
+                reply = f"{hour} {compact}"
+            correction = "change to " + reply
+            if parser.parse(correction)["intent"] == "correction":
+                self._process_confirmation(correction, trusted_input=True)
+            else:
+                self.state = ConvoState.CLARIFYING
+                self._start_ttl()
+                self._speak_clarification(
+                    self.pending_intent_data.get("missing", []),
+                    self.pending_intent_data.get("ambiguous", []),
+                )
+            return
         
         # If we were disambiguating a note or event, try to narrow using the clarification text directly
         if "ambiguous_note" in old_missing:
@@ -657,16 +677,44 @@ class ConversationManager:
                 if v:
                     self.pending_intent_data["slots"][k] = v
             new_result = self.pending_intent_data
-            
-            missing = new_result["missing"]
+
+            # A correction is a partial update, not a new request. Validate the
+            # merged instant instead of the parser's default/current date.
+            slots = new_result["slots"]
+            missing = [field for field in ("date", "time") if not slots.get(field)]
+            new_result["missing"] = missing
+            unresolved_meridiem = (
+                "am_pm" in new_result.get("ambiguous", [])
+                and not result["slots"].get("time")
+            )
+            new_result["ambiguous"] = [
+                value for value in result.get("ambiguous", []) if value != "past_time"
+            ]
+            if unresolved_meridiem and "am_pm" not in new_result["ambiguous"]:
+                new_result["ambiguous"].append("am_pm")
+            if slots.get("date") and slots.get("time") and not new_result["ambiguous"]:
+                tz = ZoneInfo("Asia/Kolkata")
+                now = self.clock() if self.clock else datetime.now(tz)
+                if now.tzinfo is None:
+                    now = now.replace(tzinfo=tz)
+                try:
+                    merged_dt = datetime.strptime(
+                        f"{slots['date']} {slots['time']}", "%Y-%m-%d %H:%M"
+                    ).replace(tzinfo=tz)
+                    if merged_dt <= now:
+                        new_result["ambiguous"].append("past_time")
+                except ValueError:
+                    new_result["ambiguous"].append("invalid_time")
             missing.extend(self._resolve_ambiguity_for_intent(new_result["intent"], new_result["slots"]))
             
             if missing or new_result["ambiguous"]:
+                new_result["_correction_pending"] = True
                 self.state = ConvoState.CLARIFYING
                 self._start_ttl()
                 self._speak_clarification(missing, new_result["ambiguous"])
                 return
                 
+            new_result.pop("_correction_pending", None)
             old_action_id = self.pending_action_id
             self.pending_action_id = f"act_{uuid.uuid4().hex[:8]}"
             if old_action_id:

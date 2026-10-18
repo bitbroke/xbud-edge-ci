@@ -53,6 +53,7 @@ from providers.tts_worker import TTSWorker
 from storage.database import StorageManager, get_db_conn
 from scheduler.scheduler import ReminderScheduler
 from app.conversation import ConversationManager, ConvoState
+from benchmarks.evaluation_metrics import compute_wer_cer_metrics, assert_exact_utc
 
 # -------------------------------------------------------------------------
 # FROZEN MODEL MANIFEST (Independent Ground Truth)
@@ -100,31 +101,6 @@ def verify_source_hash(filepath: Path, expected_hash: str, context: str):
             f"  Expected: {expected_hash}\n"
             f"  Observed: {actual}"
         )
-
-def compute_wer_cer_metrics(references: List[str], hypotheses: List[str]):
-    clip_wers = [wer(r.lower(), h.lower()) if h.strip() else 1.0 for r, h in zip(references, hypotheses)]
-    clip_cers = [cer(r.lower(), h.lower()) if h.strip() else 1.0 for r, h in zip(references, hypotheses)]
-
-    try:
-        word_output = process_words(references, hypotheses)
-        corpus_wer_val = float(word_output.wer)
-    except Exception:
-        corpus_wer_val = float(np.mean(clip_wers))
-
-    try:
-        char_output = process_characters(references, hypotheses)
-        corpus_cer_val = float(char_output.cer)
-    except Exception:
-        corpus_cer_val = float(np.mean(clip_cers))
-
-    return {
-        "mean_clip_wer": round(float(np.mean(clip_wers)), 4),
-        "corpus_wer": round(corpus_wer_val, 4),
-        "mean_clip_cer": round(float(np.mean(clip_cers)), 4),
-        "corpus_cer": round(corpus_cer_val, 4),
-        "clip_wers": clip_wers,
-        "clip_cers": clip_cers
-    }
 
 def main():
     parser = argparse.ArgumentParser(description="ARM64 English Command Evaluation Benchmark")
@@ -216,7 +192,14 @@ def main():
 
     # Initialize Real ASR Worker
     print("[Phase 0] Initializing real SherpaOnnxASR engine (strict_real=True)...")
-    asr = ASRWorker(engine="sherpa", model_dir=str(model_dir), language="en", strict_real=True)
+    # Only verified int8 files may be selected; the adapter prefers float files
+    # when the original release directory contains both variants.
+    model_stage = tempfile.TemporaryDirectory(prefix="xbud_verified_int8_")
+    for fname, expected_hash in FROZEN_MODEL_HASHES.items():
+        staged = Path(model_stage.name) / fname
+        shutil.copy2(model_dir / fname, staged)
+        verify_source_hash(staged, expected_hash, "staged model")
+    asr = ASRWorker(engine="sherpa", model_dir=model_stage.name, language="en", strict_real=True)
     if asr.is_mock:
         report["pass_fail_rules"]["real_inference_verified"] = "FAIL"
         raise RuntimeError("CRITICAL: ASRWorker fell back to mock mode! Real inference required.")
@@ -517,9 +500,11 @@ def main():
                 if exp_rem.get("status") and rem["status"] != exp_rem["status"]:
                     sess_passed = False
                     failure_reasons.append(f"Reminder status mismatch: expected '{exp_rem['status']}', got '{rem['status']}'")
-                if exp_rem.get("due_time_utc_contains") and exp_rem["due_time_utc_contains"] not in rem["due_time"]:
+                try:
+                    assert_exact_utc(rem["due_time"], exp_rem["due_time_utc"])
+                except (AssertionError, ValueError, KeyError) as exc:
                     sess_passed = False
-                    failure_reasons.append(f"Reminder due_time mismatch: expected substring '{exp_rem['due_time_utc_contains']}', got '{rem['due_time']}'")
+                    failure_reasons.append(f"Reminder due_time validation failed: {exc}")
                 if exp_rem.get("query_contains"):
                     # Check decrypted action data
                     act_match = next((a for a in actions_rows if a["id"] == rem["action_id"]), None)
@@ -562,9 +547,12 @@ def main():
                 failure_reasons.append("Expected durable calendar event in DB, but calendar_events was empty!")
             else:
                 evt_rec = events_rows[-1]
-                if exp_evt.get("start_time_contains") and exp_evt["start_time_contains"] not in evt_rec["start_time"]:
-                    sess_passed = False
-                    failure_reasons.append(f"Event start_time mismatch: expected substring '{exp_evt['start_time_contains']}', got '{evt_rec['start_time']}'")
+                for field in ("start_time", "end_time"):
+                    try:
+                        assert_exact_utc(evt_rec[field], exp_evt[field + "_utc"])
+                    except (AssertionError, ValueError, KeyError) as exc:
+                        sess_passed = False
+                        failure_reasons.append(f"Event {field} validation failed: {exc}")
                 if exp_evt.get("title_contains"):
                     try:
                         dec_title = db_mgr.cipher.decrypt(evt_rec["encrypted_title"].encode('utf-8')).decode('utf-8')
@@ -1018,7 +1006,7 @@ def main():
         t2 = report["tracks"]["track_2_assistant_commands"]
         f.write(f"| Track 2 (Assistant Commands) | Total Command Sessions | `{t2['total_sessions']}` |\n")
         f.write(f"| Track 2 (Assistant Commands) | Total Conversation Turns | `{t2['total_turns']}` |\n")
-        f.write(f"| Track 2 (Assistant Commands) | Explicit Task Completion Rate | **`{t2['task_completion_rate'] * 100:.2f}%`** (`{t2['tasks_completed_count']}/{t2['total_sessions']}`) |\n")
+        f.write(f"| Track 2 (Assistant Commands) | Scenario Assertion Pass Rate (includes pending/clarifying) | **`{t2['task_completion_rate'] * 100:.2f}%`** (`{t2['tasks_completed_count']}/{t2['total_sessions']}`) |\n")
         f.write(f"| Track 2 (Assistant Commands) | Per-Turn Latency (p50 / p95) | `{t2['p50_turn_latency_s']:.3f}s` / `{t2['p95_turn_latency_s']:.3f}s` |\n")
         f.write(f"| Track 2 (Assistant Commands) | Total Session Duration (p50 / p95) | `{t2['p50_session_duration_s']:.3f}s` / `{t2['p95_session_duration_s']:.3f}s` |\n")
         f.write(f"| Track 2 (Assistant Commands) | Unsafe Database Mutations | **`{t2['unsafe_mutation_count']}`** |\n")
@@ -1041,6 +1029,8 @@ def main():
     print(f"Markdown:    {md_path}")
     print("==================================================================")
 
+    asr.adapter._kill_worker()
+    model_stage.cleanup()
     if not overall_pass:
         sys.exit(1)
 

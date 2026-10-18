@@ -7,6 +7,10 @@ import subprocess
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any, Tuple
 import multiprocessing as mp
+import queue
+import threading
+import uuid
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -216,18 +220,26 @@ class WhisperCppASR(BaseASR):
                 pass
 
             transcription_items = data.get("transcription", [])
-            text = " ".join(item.get("text", "").strip() for item in transcription_items).strip()
+            raw_text = " ".join(item.get("text", "").strip() for item in transcription_items).strip()
+            # Remove only this exact engine control marker, not bracketed user
+            # content, words such as 'blank audio', or other annotations.
+            def clean_text(value):
+                return " ".join(value.replace("[BLANK_AUDIO]", " ").split())
+            text = clean_text(raw_text)
             segments = [
                 {
                     "start": item.get("timestamps", {}).get("from", 0.0),
                     "end": item.get("timestamps", {}).get("to", 0.0),
-                    "text": item.get("text", "").strip(),
+                    "text": clean_text(item.get("text", "")),
+                    "raw_text": item.get("text", "").strip(),
                 }
-                for item in transcription_items
+                for item in transcription_items if clean_text(item.get("text", ""))
             ]
 
             return {
                 "text": text,
+                "raw_text": raw_text,
+                "non_speech_markers_removed": raw_text.count("[BLANK_AUDIO]"),
                 "language": run_language,
                 "model_id": self.model_id,
                 "duration_s": elapsed,
@@ -313,9 +325,9 @@ def _sherpa_inference_worker(req_queue: mp.Queue, resp_queue: mp.Queue, model_di
             text = stream.result.text.strip()
             audio_duration = float(len(audio)) / float(sample_rate)
 
-            resp_queue.put({"status": "ok", "text": text, "audio_duration": audio_duration, "error": None})
+            resp_queue.put({"status": "ok", "request_id": req["request_id"], "text": text, "audio_duration": audio_duration, "error": None})
         except Exception as e:
-            resp_queue.put({"status": "error", "text": "", "error": str(e), "audio_duration": 0.0})
+            resp_queue.put({"status": "error", "request_id": req.get("request_id"), "text": "", "error": str(e), "audio_duration": 0.0})
 
 
 class SherpaOnnxASR(BaseASR):
@@ -330,6 +342,9 @@ class SherpaOnnxASR(BaseASR):
         self._req_queue = None
         self._resp_queue = None
         self._ctx = mp.get_context("spawn")
+        self._ready = False
+        self._lifecycle_lock = threading.RLock()
+        self.startup_timeout_s = 10.0
 
         has_model_dir = self.model_dir and os.path.isdir(self.model_dir)
         has_sherpa = False
@@ -359,129 +374,134 @@ class SherpaOnnxASR(BaseASR):
 
         self.is_mock = not (has_model_dir and has_sherpa)
 
-    def _ensure_worker(self):
-        if self._proc is not None and self._proc.is_alive():
-            return True
-
-        self._req_queue = self._ctx.Queue()
-        self._resp_queue = self._ctx.Queue()
-        self._proc = self._ctx.Process(
-            target=_sherpa_inference_worker,
-            args=(self._req_queue, self._resp_queue, self.model_dir, self.num_threads),
-            daemon=True
-        )
-        self._proc.start()
-
-        # Wait for worker ready signal
-        try:
-            init_resp = self._resp_queue.get(timeout=10.0)
-            if init_resp.get("status") != "ready":
-                if self.strict_real:
-                    raise RuntimeError(f"Sherpa worker failed to initialize: {init_resp.get('error')}")
-                self._kill_worker()
-                self.is_mock = True
-                return False
-            return True
-        except Exception as e:
-            if self.strict_real:
-                raise RuntimeError(f"Sherpa worker startup timed out or failed: {e}")
+    def _ensure_worker(self, deadline=None):
+        """A live process is usable only after its ready handshake."""
+        with self._lifecycle_lock:
+            if self._proc is not None and self._proc.is_alive() and self._ready:
+                return True
             self._kill_worker()
-            self.is_mock = True
-            return False
+            ready_deadline = time.monotonic() + self.startup_timeout_s
+            if deadline is not None:
+                ready_deadline = min(ready_deadline, deadline)
+            try:
+                if time.monotonic() >= ready_deadline:
+                    raise TimeoutError("Sherpa startup deadline exhausted")
+                self._req_queue = self._ctx.Queue()
+                self._resp_queue = self._ctx.Queue()
+                self._proc = self._ctx.Process(
+                    target=_sherpa_inference_worker,
+                    args=(self._req_queue, self._resp_queue, self.model_dir, self.num_threads),
+                    daemon=True,
+                )
+                self._proc.start()
+                while True:
+                    remaining = ready_deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError("Sherpa ready handshake timed out")
+                    try:
+                        response = self._resp_queue.get(timeout=min(0.02, remaining))
+                    except queue.Empty:
+                        if not self._proc.is_alive():
+                            raise RuntimeError(f"Sherpa exited during startup: {self._proc.exitcode}")
+                        continue
+                    if response.get("status") != "ready":
+                        raise RuntimeError(f"Sherpa initialization failed: {response.get('error')}")
+                    self._ready = True
+                    return True
+            except Exception:
+                self._kill_worker()
+                raise
 
     def _kill_worker(self):
-        if self._proc is not None:
-            try:
-                if self._proc.is_alive():
-                    self._proc.terminate()
-                    self._proc.join(timeout=1.0)
-                    if self._proc.is_alive():
-                        self._proc.kill()
-            except Exception:
-                pass
-            self._proc = None
-            self._req_queue = None
-            self._resp_queue = None
+        with self._lifecycle_lock:
+            self._ready = False
+            proc = self._proc
+            if proc is not None:
+                if proc.pid is not None:
+                    if proc.is_alive():
+                        proc.terminate()
+                    proc.join(timeout=1.0)
+                    if proc.is_alive():
+                        proc.kill()
+                        proc.join(timeout=1.0)
+                    if proc.is_alive():
+                        # Retain the handle and refuse to spawn another worker.
+                        raise RuntimeError("Sherpa worker could not be reaped")
+                proc.close()
+                self._proc = None
+            # A queue used by a killed writer is never reused. Do not join its
+            # feeder: termination can leave the underlying pipe lock held.
+            for name in ("_req_queue", "_resp_queue"):
+                channel = getattr(self, name, None)
+                if channel is not None:
+                    channel.cancel_join_thread()
+                    channel.close()
+                    setattr(self, name, None)
 
     def transcribe(self, wav_path: str, timeout: float = 10.0, language: Optional[str] = None) -> Dict[str, Any]:
         t0 = time.monotonic()
         run_language = language or self.language
-
+        if not math.isfinite(timeout) or timeout <= 0:
+            raise ValueError("timeout must be finite and positive")
         if self.is_mock:
             mock = MockASR(language=run_language, model_id=self.model_id)
             return mock.transcribe(wav_path, timeout=timeout)
-
-        if not self._ensure_worker():
-            mock = MockASR(language=run_language, model_id=self.model_id)
-            return mock.transcribe(wav_path, timeout=timeout)
-
-        wav_path = os.path.abspath(wav_path)
-        self._req_queue.put({"wav_path": wav_path, "language": run_language})
-
+        deadline = t0 + timeout
         peak_bytes = None
-        p = None
-        if psutil and self._proc:
-            try:
-                p = psutil.Process(self._proc.pid)
-            except Exception:
-                p = None
-
-        timed_out = False
-        res = None
-
-        start_wait = time.monotonic()
-        while (time.monotonic() - start_wait) < timeout:
-            if p and p.is_running():
-                try:
-                    mem = p.memory_info().rss
-                    if peak_bytes is None or mem > peak_bytes:
-                        peak_bytes = mem
-                except Exception:
-                    pass
-            try:
-                res = self._resp_queue.get_nowait()
-                break
-            except Exception:
-                time.sleep(0.02)
-
-        elapsed = time.monotonic() - t0
-
-        if res is None:
-            # Enforce hard timeout: kill worker and respawn on subsequent calls
-            logger.warning(f"Sherpa-ONNX inference exceeded timeout ({timeout}s). Killing worker process.")
-            self._kill_worker()
+        phase = "queue_wait"
+        def result(text="", error=None, timed_out=False, audio_dur=0.0):
+            elapsed = time.monotonic() - t0
             return {
-                "text": "",
-                "language": run_language,
-                "model_id": self.model_id,
-                "duration_s": elapsed,
-                "duration": elapsed,
-                "error": "Timeout",
-                "timeout": True,
-                "peak_memory_bytes": peak_bytes,
-                "peak_process_memory_bytes": peak_bytes,
-                "segments": [],
+                "text": text, "language": run_language, "model_id": self.model_id,
+                "duration_s": elapsed, "duration": elapsed, "error": error,
+                "timeout": timed_out, "failure_phase": phase if error else None,
+                "peak_memory_bytes": peak_bytes, "peak_process_memory_bytes": peak_bytes,
+                "segments": [{"start": 0.0, "end": audio_dur, "text": text}] if text else [],
             }
-
-        text = res.get("text", "")
-        error = res.get("error")
-        audio_dur = res.get("audio_duration", 0.0)
-
-        return {
-            "text": text,
-            "language": run_language,
-            "model_id": self.model_id,
-            "duration_s": elapsed,
-            "duration": elapsed,
-            "error": error,
-            "timeout": False,
-            "peak_memory_bytes": peak_bytes,
-            "peak_process_memory_bytes": peak_bytes,
-            "segments": [{"start": 0.0, "end": audio_dur, "text": text}] if text else [],
-        }
+        if not self._lifecycle_lock.acquire(timeout=max(0.0, deadline-time.monotonic())):
+            return result(error="Timeout", timed_out=True)
+        try:
+            phase = "startup"
+            self._ensure_worker(deadline)
+            phase = "inference"
+            request_id = uuid.uuid4().hex
+            self._req_queue.put({"wav_path": os.path.abspath(wav_path),
+                                 "language": run_language, "request_id": request_id})
+            p = psutil.Process(self._proc.pid) if psutil else None
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError("Sherpa request deadline exhausted")
+                if p:
+                    try:
+                        peak_bytes = max(peak_bytes or 0, p.memory_info().rss)
+                    except psutil.Error:
+                        pass
+                try:
+                    res = self._resp_queue.get(timeout=min(0.02, remaining))
+                except queue.Empty:
+                    if not self._proc.is_alive():
+                        raise RuntimeError(f"Sherpa exited during inference: {self._proc.exitcode}")
+                    continue
+                if res.get("request_id") != request_id or res.get("status") not in ("ok", "error"):
+                    raise RuntimeError("Sherpa response protocol mismatch")
+                return result(text=res.get("text", ""), error=res.get("error"),
+                              audio_dur=res.get("audio_duration", 0.0))
+        except Exception as exc:
+            try:
+                self._kill_worker()
+            except Exception as cleanup_error:
+                return result(error=f"CleanupError: {cleanup_error}")
+            return result(error="Timeout" if isinstance(exc, TimeoutError) else f"WorkerError: {exc}",
+                          timed_out=isinstance(exc, TimeoutError))
+        finally:
+            self._lifecycle_lock.release()
 
     def __del__(self):
-        self._kill_worker()
+        try:
+            self._kill_worker()
+        except Exception:
+            pass  # Explicit cleanup reports errors; finalizers must not raise.
 
 
 class ASRWorker:

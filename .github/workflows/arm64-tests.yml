@@ -5,9 +5,17 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   arm64-tests:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -24,42 +32,66 @@ jobs:
           sudo apt-get install -y ffmpeg alsa-utils wget tar bzip2
 
       - name: Install Python dependencies
+        id: deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-ci.txt
+          pip install sherpa-onnx==1.13.8
 
       - name: Confirm ARM64 environment
         run: |
-          uname -m
-          python --version
-          free -h
-          df -h
+          mkdir -p reports test-results
+          test "$(uname -m)" = "aarch64"
+          { uname -a; lscpu; python --version; free -h; df -h; git rev-parse HEAD; } | tee reports/environment.txt
+          pip freeze | tee reports/packages.txt
 
       - name: Run safe ARM64 tests
         run: |
           mkdir -p reports test-results
-          pytest tests -q --ignore=tests/test_real_audio_hardware.py --ignore=tests/test_real_model_downloads.py --junitxml=test-results/junit.xml | tee reports/pytest_output.txt
+          python -m pytest tests -q --ignore=tests/test_real_audio_hardware.py --ignore=tests/test_real_model_downloads.py --junitxml=test-results/junit.xml | tee reports/pytest_output.txt
 
       - name: Verify manifests and hashes
         run: |
           python benchmarks/run_m8.py --dataset datasets/test_fixture --verify-only | tee reports/benchmark_verify.txt
 
       - name: Download real Zipformer English model
+        id: model
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         run: |
           mkdir -p models
-          wget -q https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-zipformer-en-2023-06-26.tar.bz2
-          tar xf sherpa-onnx-zipformer-en-2023-06-26.tar.bz2 -C models/
+          wget -q --timeout=30 --tries=3 https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-zipformer-en-2023-06-26.tar.bz2
+          tar xjf sherpa-onnx-zipformer-en-2023-06-26.tar.bz2 -C models/ --wildcards '*/tokens.txt' '*/encoder-epoch-99-avg-1.int8.onnx' '*/decoder-epoch-99-avg-1.int8.onnx' '*/joiner-epoch-99-avg-1.int8.onnx'
           rm -f sherpa-onnx-zipformer-en-2023-06-26.tar.bz2
+          python - <<'PY' | tee reports/model_verification.txt
+          from pathlib import Path
+          import hashlib
+          from benchmarks.run_arm64_command_eval import FROZEN_MODEL_HASHES
+          root = Path("models/sherpa-onnx-zipformer-en-2023-06-26")
+          assert {p.name for p in root.iterdir()} == set(FROZEN_MODEL_HASHES)
+          for name, expected in FROZEN_MODEL_HASHES.items():
+              with (root/name).open("rb") as stream:
+                  actual = hashlib.file_digest(stream, "sha256").hexdigest()
+              assert actual == expected, name
+              print(name, actual, "MATCH")
+          PY
 
       - name: Run real English ASR ARM64 smoke test
+        if: ${{ !cancelled() && steps.model.outcome == 'success' }}
         run: |
           python scripts/smoke_test_real_asr.py --model-dir models/sherpa-onnx-zipformer-en-2023-06-26 --speech-wav tests/fixtures/speech_test.wav --silence-wav tests/fixtures/silence_test.wav --output-dir reports | tee reports/smoke_test_output.txt
 
       - name: Run ARM64 English command evaluation benchmark
+        if: ${{ !cancelled() && steps.model.outcome == 'success' }}
         run: |
           python benchmarks/run_arm64_command_eval.py --model-dir models/sherpa-onnx-zipformer-en-2023-06-26 --corpus-dir datasets/arm64_eval_corpus --output-dir reports | tee reports/arm64_command_eval_output.txt
 
+      - name: Stress real int8 timeout and restart recovery
+        if: ${{ !cancelled() && steps.model.outcome == 'success' }}
+        run: |
+          python -u scripts/stress_sherpa_restart.py --model-dir models/sherpa-onnx-zipformer-en-2023-06-26 --output reports/restart_int8 --cycles 30 --precision int8 | tee reports/restart_stress_output.txt
+
       - name: Upload test evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: arm64-test-evidence

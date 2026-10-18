@@ -187,9 +187,9 @@ class IntentParser:
                     query_slot = task_match.group(1).strip().rstrip('.!?')
             if times and not global_am_pm and "am_pm" not in ambiguous:
                 ambiguous.append("am_pm")
-            if not time_slot and "time" not in missing:
+            if not time_slot and intent != "correction" and "time" not in missing:
                 missing.append("time")
-            if not date_slot:
+            if not date_slot and intent != "correction":
                 date_slot = target_date.strftime("%Y-%m-%d") # default today
             if time_slot and date_slot and not ambiguous:
                 try:

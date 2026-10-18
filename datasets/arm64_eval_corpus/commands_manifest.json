@@ -34,7 +34,7 @@
       "verified_reminder": {
         "query_contains": "CALL JOHN",
         "status": "pending",
-        "due_time_utc_contains": "03:30:00"
+        "due_time_utc": "2026-10-19T03:30:00Z"
       }
     }
   },
@@ -73,7 +73,7 @@
       "verified_reminder": {
         "query_contains": "BUY GROCERIES",
         "status": "pending",
-        "due_time_utc_contains": "11:30:00"
+        "due_time_utc": "2026-10-18T11:30:00Z"
       }
     }
   },
@@ -112,7 +112,7 @@
       "verified_reminder": {
         "query_contains": "TAKE MEDICINE",
         "status": "pending",
-        "due_time_utc_contains": "14:30:00"
+        "due_time_utc": "2026-10-18T14:30:00Z"
       }
     }
   },
@@ -151,7 +151,7 @@
       "verified_reminder": {
         "query_contains": "WATER THE PLANTS",
         "status": "pending",
-        "due_time_utc_contains": "01:30:00"
+        "due_time_utc": "2026-10-19T01:30:00Z"
       }
     }
   },
@@ -190,7 +190,7 @@
       "verified_reminder": {
         "query_contains": "SUBMIT THE ASSIGNMENT",
         "status": "pending",
-        "due_time_utc_contains": "17:30:00"
+        "due_time_utc": "2026-10-18T17:30:00Z"
       }
     }
   },
@@ -229,7 +229,7 @@
       "verified_reminder": {
         "query_contains": "FEED THE DOG",
         "status": "pending",
-        "due_time_utc_contains": "12:30:00"
+        "due_time_utc": "2026-10-18T12:30:00Z"
       }
     }
   },
@@ -276,7 +276,7 @@
       },
       "verified_reminder": {
         "status": "pending",
-        "due_time_utc_contains": "11:30:00"
+        "due_time_utc": "2026-10-18T11:30:00Z"
       }
     }
   },
@@ -324,7 +324,7 @@
       "verified_reminder": {
         "query_contains": "CHECK THE OVEN",
         "status": "pending",
-        "due_time_utc_contains": "09:30:00"
+        "due_time_utc": "2026-10-18T09:30:00Z"
       }
     }
   },
@@ -371,7 +371,7 @@
       },
       "verified_reminder": {
         "status": "pending",
-        "due_time_utc_contains": "04:30:00"
+        "due_time_utc": "2026-10-19T04:30:00Z"
       }
     }
   },
@@ -419,7 +419,7 @@
       "verified_reminder": {
         "query_contains": "CALL SARAH",
         "status": "pending",
-        "due_time_utc_contains": "04:30:00"
+        "due_time_utc": "2026-10-18T04:30:00Z"
       }
     }
   },
@@ -467,7 +467,7 @@
       "verified_reminder": {
         "query_contains": "BUY GROCERIES",
         "status": "pending",
-        "due_time_utc_contains": "10:30:00"
+        "due_time_utc": "2026-10-19T10:30:00Z"
       }
     }
   },
@@ -658,8 +658,12 @@
       },
       "verified_event": {
         "title_contains": "PROJECT REVIEW",
-        "start_time_contains": "08:30:00",
-        "end_time_contains": "09:30:00"
+        "start_time_utc": "2026-10-19T08:30:00Z",
+        "end_time_utc": "2026-10-19T09:30:00Z"
+      },
+      "verified_reminder": {
+        "status": "pending",
+        "due_time_utc": "2026-10-19T08:20:00Z"
       }
     }
   },
@@ -805,7 +809,7 @@
       "verified_reminder": {
         "query_contains": "PAY BILLS",
         "status": "pending",
-        "due_time_utc_contains": "11:30:00"
+        "due_time_utc": "2026-10-19T11:30:00Z"
       }
     }
   },
